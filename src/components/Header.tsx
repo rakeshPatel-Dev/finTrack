@@ -17,7 +17,7 @@ const Header = () => {
       : names[0][0].toUpperCase() + names[names.length - 1][0].toUpperCase();
   };
 
-  return (
+  return (  
     <header className="w-full dark:bg-[#102218] bg-[#f6f8f7] border-b border-black/5 dark:border-white/10 px-4 sm:px-6 py-3 relative z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
@@ -79,7 +79,10 @@ const Header = () => {
 
           {/* Avatar Dropdown */}
           {avatarOpen && (
-            <div className="absolute right-0 top-12 w-44 bg-white dark:bg-[#0b1a14] shadow-xl rounded-lg border border-white/10 z-50 flex flex-col py-2">
+            <div className="absolute right-0  px-4 top-12 w-44 bg-white dark:bg-[#0b1a14] shadow-xl rounded-lg border border-white/10 z-50 flex flex-col py-2">
+              <div className="text-white/10 px-4 py-2 border-b">
+                <h1 className= " text-left text-white">{existingUser.name}</h1>
+              </div>
               <Link
                 to="/settings"
                 className="px-4 py-2 text-sm flex flex-row gap-2 text-gray-700 dark:text-gray-200 hover:bg-[#13ec6d]/20 transition"

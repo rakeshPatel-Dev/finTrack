@@ -1,1 +1,13 @@
-@import "tailwindcss"
+@import "tailwindcss";
+
+.summary-card {
+  @apply flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 border border-[#13ec6d] bg-white/5;
+}
+
+.summary-card .label {
+  @apply text-neutral-300 text-base font-medium;
+}
+
+.summary-card .value {
+  @apply text-white text-3xl font-bold;
+}

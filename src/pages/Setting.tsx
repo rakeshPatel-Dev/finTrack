@@ -65,6 +65,7 @@ export default function Settings() {
         };
         localStorage.setItem("user", JSON.stringify(updatedUser));
         toast.success("Settings saved successfully!");
+        window.location.reload();
     };
 
     const handleLogOut = () => {

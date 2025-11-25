@@ -1,298 +1,230 @@
 "use client"
-import React from 'react'
+import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
-const dashboard = () => {
+const Dashboard = () => {
+  const [user, setUser] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [filterType, setFilterType] = useState("all");       // income, expense, all
+  const [filterCategory, setFilterCategory] = useState("all"); // Food, Travel, Salary, all
 
-  const userString = localStorage.getItem("user")
-  const user = userString ? JSON.parse(userString) : null
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("transactions")) || " [] ";
+    setTransactions(saved);
+  }, []);
+
+  const filtered = transactions.filter(t => {
+    // check type filter
+    let typeMatch = filterType === "all" || t.type === filterType;
+
+    // check category filter
+    let catMatch = filterCategory === "all" || t.category === filterCategory;
+
+    return typeMatch && catMatch;
+  });
+
+  const income = filtered
+    .filter(t => t.type === "income")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const expense = filtered
+    .filter(t => t.type === "expense")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
 
+
+
+  // Fetch user + transactions initially
+  useEffect(() => {
+    const userString = localStorage.getItem("user");
+    setUser(userString ? JSON.parse(userString) : null);
+
+    const tx = JSON.parse(localStorage.getItem("fintrack-transactions")) || [];
+    setTransactions(tx);
+  }, []);
+
+  // Real-time sync whenever LS changes (from ANY tab/component)
+  useEffect(() => {
+    const handleStorage = () => {
+      const tx = JSON.parse(localStorage.getItem("fintrack-transactions")) || [];
+      setTransactions(tx);
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
+  // --- CALCULATIONS ---
+  const totalExpense = transactions
+    .filter(t => t.type === "expense")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const totalIncome = transactions
+    .filter(t => t.type === "income")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const balance = totalIncome - totalExpense;
+
+  const recent = filtered.slice(0, 5); // first 5 items
+
+
+  //guard (avoid crash before data loads)
+  if (!user) return null;
 
   return (
-    <div>
-      <div className=" bg-[#f6f8f7] dark:bg-[#102218]">
-        <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
-          <div className="layout-container flex h-full grow flex-col">
-            <div className="px-4 sm:px-8 md:px-12 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
-              <div className="layout-content-container flex flex-col w-full max-w-7xl flex-1">
-                <main className="flex-1 p-4 mt-6">
-                  <div className="flex flex-wrap justify-between gap-3 mb-6">
-                    <div className="flex min-w-72 flex-col gap-3">
-                      <p className="text-white text-4xl font-black leading-tight tracking-[-0.033em]">
-                        Welcome back, {user.username}
-                      </p>
-                      <p className="text-[#92c9a9] text-base font-normal leading-normal">
-                        Here's your financial summary for this month.
-                      </p>
-                    </div>
+    <div className="bg-[#f6f8f7] dark:bg-[#102218]">
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+        <div className="layout-container flex flex-col h-full grow">
+
+          <div className="px-4 sm:px-8 md:px-12 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
+            <div className="w-full max-w-7xl flex flex-col flex-1">
+
+              {/* HEADER */}
+              <main className="flex-1 p-4 mt-6">
+                <div className="flex flex-wrap justify-between gap-3 mb-6">
+                  <div className="flex min-w-72 flex-col gap-3">
+                    <p className="text-white text-4xl font-black">
+                      Welcome back, {user.username}
+                    </p>
+                    <p className="text-[#92c9a9] text-base">
+                      Here's your financial summary for this month.
+                    </p>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 border border-[#13ec6d] bg-white/5">
-                      <p className="text-neutral-300 text-base font-medium leading-normal">
-                        Total Spending
-                      </p>
-                      <p className="text-white tracking-light text-3xl font-bold leading-tight">
-                        $1,250.75
-                      </p>
-                      <p className="text-[#13ec6d] text-sm font-medium leading-normal">
-                        +5.2% vs last month
-                      </p>
-                    </div>
-                    <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 border border-[#13ec6d] bg-white/5">
-                      <p className="text-neutral-300 text-base font-medium leading-normal">
-                        Budget Remaining
-                      </p>
-                      <p className="text-white tracking-light text-3xl font-bold leading-tight">
-                        $749.25
-                      </p>
-                      <p className="text-[#fa5538] text-sm font-medium leading-normal">
-                        49% of budget used
-                      </p>
-                    </div>
-                    <div className="flex min-w-[158px] flex-1 flex-col gap-2 rounded-xl p-6 border border-[#13ec6d] bg-white/5">
-                      <p className="text-neutral-300 text-base font-medium leading-normal">
-                        Highest Category
-                      </p>
-                      <p className="text-white tracking-light text-3xl font-bold leading-tight">
-                        Groceries
-                      </p>
-                      <p className="text-neutral-400 text-sm font-medium leading-normal">
-                        $345.12 spent
-                      </p>
-                    </div>
+                </div>
+
+                {/* SUMMARY CARDS */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  <div className="summary-card">
+                    <p className="label">Total Spending</p>
+                    <p className="value">Rs {totalExpense}</p>
                   </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                    <div className="lg:col-span-2 flex flex-col gap-4 p-6 rounded-xl border border-[#13ec6d] bg-white/5">
-                      <div className="flex justify-between items-center">
-                        <p className="text-white text-lg font-bold leading-normal">
-                          Spending Over Time
-                        </p>
-                        <div className="flex items-center gap-2 rounded-lg border border-[#13ec6d] p-1">
-                          <button className="px-3 py-1 text-xs font-semibold rounded-md bg-[#13ec6d] text-[#102218]">
-                            This Month
-                          </button>
-                          <button className="px-3 py-1 text-xs font-semibold rounded-md text-neutral-300 hover:bg-white/10">
-                            This Week
-                          </button>
-                          <button className="px-3 py-1 text-xs font-semibold rounded-md text-neutral-300 hover:bg-white/10">
-                            This Year
-                          </button>
+
+                  <div className="summary-card">
+                    <p className="label">Total Income</p>
+                    <p className="value text-[#13ec6d]">Rs {totalIncome}</p>
+                  </div>
+
+                  <div className="summary-card">
+                    <p className="label">Balance</p>
+                    <p className="value">{balance >= 0 ? "Rs " + balance : "-Rs " + Math.abs(balance)}</p>
+                  </div>
+                </div>
+
+                {/* Filtering */}
+                <div className="px-4 border-b border-white/10 bg-[#102218] dark:bg-[#102218] py-4 mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+                    {/* Left Text */}
+                    <div className="text-white/70 font-semibold text-md">
+                      Filter recent transactions based on type and category.
+                    </div>
+
+                    {/* Right Filters */}
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-1/2">
+
+                      {/* Type Filter */}
+                      <div className="relative flex-1">
+                        <label className="sr-only">Transaction Type</label>
+                        <select
+                          title="Filter type"
+                          value={filterType}
+                          onChange={(e) => setFilterType(e.target.value)}
+                          className="w-full appearance-none bg-[#193324] border border-[#13ec6d] text-white text-sm rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#13ec6d] focus:border-[#13ec6d] transition"
+                        >
+                          <option value="all">All Transactions</option>
+                          <option value="income">Income</option>
+                          <option value="expense">Expense</option>
+                        </select>
+                        <div className="absolute top-3 right-3 pointer-events-none text-white">
+                          <ChevronDown />
                         </div>
                       </div>
-                      <div className="grid min-h-[240px] grid-flow-col gap-6 grid-rows-[1fr_auto] items-end justify-items-center px-3">
-                        <div
-                          className="bg-[#13ec6d]/30 hover:bg-[#13ec6d] transition-colors rounded-t-sm w-full"
-                          style={{ height: "50%" }}
-                        />
-                        <p className="text-[#92c9a9] text-xs font-medium leading-normal">
-                          Week 1
-                        </p>
-                        <div
-                          className="bg-[#13ec6d]/30 hover:bg-[#13ec6d] transition-colors rounded-t-sm w-full"
-                          style={{ height: "80%" }}
-                        />
-                        <p className="text-[#92c9a9] text-xs font-medium leading-normal">
-                          Week 2
-                        </p>
-                        <div
-                          className="bg-[#13ec6d]/30 hover:bg-[#13ec6d] transition-colors rounded-t-sm w-full"
-                          style={{ height: "60%" }}
-                        />
-                        <p className="text-[#92c9a9] text-xs font-medium leading-normal">
-                          Week 3
-                        </p>
-                        <div
-                          className="bg-[#13ec6d]/30 hover:bg-[#13ec6d] transition-colors rounded-t-sm w-full"
-                          style={{ height: "35%" }}
-                        />
-                        <p className="text-[#92c9a9] text-xs font-medium leading-normal">
-                          Week 4
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-4 p-6 rounded-xl border border-[#13ec6d] bg-white/5">
-                      <p className="text-white text-lg font-bold leading-normal">
-                        Spending by Category
-                      </p>
-                      <div className="flex justify-center items-center h-full relative">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <svg className="transform -rotate-90 w-48 h-48">
-                            <circle
-                              cx={96}
-                              cy={96}
-                              fill="transparent"
-                              r={72}
-                              stroke="rgba(255, 255, 255, 0.1)"
-                              strokeWidth={24}
-                            />
-                            <circle
-                              cx={96}
-                              cy={96}
-                              fill="transparent"
-                              r={72}
-                              stroke="#eab308"
-                              strokeDasharray="452.39"
-                              strokeDashoffset="339.2925"
-                              strokeWidth={24}
-                            />{" "}
-                            {/* 25% */}
-                            <circle
-                              cx={96}
-                              cy={96}
-                              fill="transparent"
-                              r={72}
-                              stroke="#8b5cf6"
-                              strokeDasharray="452.39"
-                              strokeDashoffset="158.3365"
-                              strokeWidth={24}
-                            />{" "}
-                            {/* 40% */}
-                            <circle
-                              cx={96}
-                              cy={96}
-                              fill="transparent"
-                              r={72}
-                              stroke="#13ec6d"
-                              strokeDasharray="452.39"
-                              strokeDashoffset={0}
-                              strokeWidth={24}
-                            />{" "}
-                            {/* 35% */}
-                          </svg>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-neutral-400 text-sm">Total Spent</p>
-                          <p className="text-white text-2xl font-bold">$1250.75</p>
+
+                      {/* Category Filter */}
+                      <div className="relative flex-1">
+                        <label className="sr-only">Category</label>
+                        <select
+                          value={filterCategory}
+                          onChange={(e) => setFilterCategory(e.target.value)}
+                          title="Filter category"
+                          className="w-full appearance-none bg-[#193324] border border-[#13ec6d] text-white text-sm rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[#13ec6d] focus:border-[#13ec6d] transition"
+                        >
+                          <option value="all">All Categories</option>
+                          <option value="food">Food & Drink</option>
+                          <option value="transport">Transport</option>
+                          <option value="bills">Bills & Utilities</option>
+                          <option value="entertainment">Entertainment</option>
+                          <option value="other">Other</option>
+                        </select>
+                        <div className="absolute top-3 right-3 pointer-events-none text-white">
+                          <ChevronDown />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 mt-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="size-3 rounded-full bg-[#13ec6d]" />
-                          <span className="text-neutral-300">Groceries</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="size-3 rounded-full bg-purple-500" />
-                          <span className="text-neutral-300">Transport</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="size-3 rounded-full bg-yellow-500" />
-                          <span className="text-neutral-300">Entertainment</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="size-3 rounded-full bg-white/10" />
-                          <span className="text-neutral-300">Other</span>
-                        </div>
-                      </div>
+
                     </div>
                   </div>
-                  <div className="flex flex-col gap-4 p-6 rounded-xl border border-[#13ec6d] bg-white/5">
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-white text-lg font-bold leading-tight tracking-[-0.015em]">
-                        Recent Transactions
-                      </h2>
-                      <a
-                        className="text-[#13ec6d] text-sm font-medium hover:underline"
-                        href="#"
-                      >
-                        View All
-                      </a>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left">
-                        <thead>
-                          <tr className="border-b border-white/10 text-xs text-neutral-400 uppercase tracking-wider">
-                            <th className="py-3 px-4 font-medium">Date</th>
-                            <th className="py-3 px-4 font-medium">Description</th>
-                            <th className="py-3 px-4 font-medium">Category</th>
-                            <th className="py-3 px-4 font-medium text-right">
-                              Amount
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/10">
-                          <tr className="hover:bg-white/5 transition-colors">
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Oct 26, 2023
-                            </td>
-                            <td className="py-4 px-4 text-white font-medium text-sm">
-                              Starbucks Coffee
-                            </td>
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Food
-                            </td>
-                            <td className="py-4 px-4 text-white font-semibold text-sm text-right">
-                              -$5.75
-                            </td>
-                          </tr>
-                          <tr className="hover:bg-white/5 transition-colors">
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Oct 25, 2023
-                            </td>
-                            <td className="py-4 px-4 text-white font-medium text-sm">
-                              Netflix Subscription
-                            </td>
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Entertainment
-                            </td>
-                            <td className="py-4 px-4 text-white font-semibold text-sm text-right">
-                              -$15.49
-                            </td>
-                          </tr>
-                          <tr className="hover:bg-white/5 transition-colors">
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Oct 24, 2023
-                            </td>
-                            <td className="py-4 px-4 text-white font-medium text-sm">
-                              Whole Foods Market
-                            </td>
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Groceries
-                            </td>
-                            <td className="py-4 px-4 text-white font-semibold text-sm text-right">
-                              -$89.30
-                            </td>
-                          </tr>
-                          <tr className="hover:bg-white/5 transition-colors">
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Oct 23, 2023
-                            </td>
-                            <td className="py-4 px-4 text-white font-medium text-sm">
-                              Uber Ride
-                            </td>
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Transport
-                            </td>
-                            <td className="py-4 px-4 text-white font-semibold text-sm text-right">
-                              -$22.10
-                            </td>
-                          </tr>
-                          <tr className="hover:bg-white/5 transition-colors">
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Oct 22, 2023
-                            </td>
-                            <td className="py-4 px-4 text-white font-medium text-sm">
-                              Salary Deposit
-                            </td>
-                            <td className="py-4 px-4 text-neutral-300 text-sm">
-                              Income
-                            </td>
-                            <td className="py-4 px-4 text-[#13ec6d] font-semibold text-sm text-right">
-                              +$2,500.00
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
+                </div>
+
+                {/* RECENT TRANSACTIONS */}
+                <div className="flex flex-col gap-4 p-6 rounded-xl border border-[#13ec6d] bg-white/5">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-white text-lg font-bold">
+                      Recent Transactions
+                    </h2>
+                    <Link to="/history" className="text-[#13ec6d] hover:text-[#13ec6d]/50 underline transition-all active:text-blue-500">View all</Link>
                   </div>
-                </main>
-              </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr className="border-b border-white/10 text-xs text-neutral-400 uppercase">
+                          <th className="py-3 px-4">Date</th>
+                          <th className="py-3 px-4">Title</th>
+                          <th className="py-3 px-4">Category</th>
+                          <th className="py-3 px-4 text-right">Amount</th>
+                        </tr>
+                      </thead>
+
+                      <tbody className="divide-y divide-white/10">
+                        {recent.map(tx => (
+                          <tr key={tx.id} className="hover:bg-white/5 transition">
+                            <td className="py-4 px-4 text-neutral-300 text-sm">
+                              {new Date(tx.date).toDateString()}
+                            </td>
+                            <td className="py-4 px-4 text-white text-sm">
+                              {tx.title}
+                            </td>
+                            <td className="py-4 px-4 text-neutral-300 text-sm">
+                              {tx.category}
+                            </td>
+                            <td className={`py-4 px-4 text-sm text-right font-semibold ${tx.type === "income" ? "text-[#13ec6d]" : "text-red-400"
+                              }`}>
+                              {tx.type === "income" ? "+" : "-"}Rs {tx.amount}
+                            </td>
+                          </tr>
+                        ))}
+
+                        {recent.length === 0 && (
+                          <tr>
+                            <td className="py-4 px-4 text-neutral-400 text-sm">
+                              No transactions yet.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+              </main>
             </div>
           </div>
+
         </div>
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default dashboard
+export default Dashboard;
