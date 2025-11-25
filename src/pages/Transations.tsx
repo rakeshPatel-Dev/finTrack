@@ -1,52 +1,55 @@
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { expenseCategories, incomeCategories } from "../utils/options";
+
 
 const Transations = () => {
   const [transactionType, setTransactionType] = useState("expense");
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
-  const [category, setCategory] = useState("");
   const [desc, setDesc] = useState("");
+  const [category, setCategory] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
 
+
   const navigate = useNavigate()
- const handleSubmit = (evt: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (evt: React.FormEvent<HTMLFormElement>) => {
 
-  evt.preventDefault();
+    evt.preventDefault();
 
-  if (!title || !amount || !date || !category) {
-    toast.error("Please fill all required fields.");
-    return;
-  }
+    if (!title || !amount || !date || !category) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
 
-  const newTransaction = {
-    id: crypto.randomUUID(),
-    type: transactionType,
-    title,
-    amount,
-    date,
-    category,
-    desc,
-    createdAt: Date.now()
+    const newTransaction = {
+      id: crypto.randomUUID(),
+      type: transactionType,
+      title,
+      amount,
+      date,
+      category,
+      desc,
+      createdAt: Date.now()
+    };
+
+    const existing = JSON.parse(localStorage.getItem("fintrack-transactions") || "[]");
+    const updated = [...existing, newTransaction];
+
+    localStorage.setItem("fintrack-transactions", JSON.stringify(updated));
+
+    // Reset form
+    setTitle("");
+    setAmount("");
+    setCategory("");
+    setDate("");
+    setDesc("");
+
+    navigate("/"); // Redirect to dashboard
   };
-
-  const existing = JSON.parse(localStorage.getItem("fintrack-transactions") || "[]");
-  const updated = [...existing, newTransaction];
-
-  localStorage.setItem("fintrack-transactions", JSON.stringify(updated));
-
-  // Reset form
-  setTitle("");
-  setAmount("");
-  setCategory("");
-  setDate("");
-  setDesc("");
-
-  navigate("/"); // Redirect to dashboard
-};
 
   return (
     <div className="font-display bg-[#f6f8f7] dark:bg-[#102218] min-h-screen p-4 sm:p-6 lg:p-8">
@@ -137,16 +140,36 @@ const Transations = () => {
               </label>
 
               {/* Date */}
-              <label className="flex flex-col gap-2">
+              <label className="flex flex-col gap-2 w-full">
                 <p className="text-white font-medium">Date</p>
-                <input
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="form-input w-full rounded-lg border border-[#326748] bg-[#193324] p-4 text-white
-                  focus:border-[#13ec6d] focus:ring-[#13ec6d]"
-                  type="date"
-                />
+
+                <div
+                  onClick={() => (document.getElementById("dateInput") as HTMLInputElement)?.showPicker()
+}
+                  className="w-full cursor-pointer rounded-lg border border-[#326748] bg-[#193324] p-4 text-white
+                  flex items-center justify-between hover:border-[#13ec6d] transition-all relative">
+
+                  {/* Visible date text */}
+                  <span
+                    className="cursor-pointer"
+                  >
+                    {date || "Select a date"}
+                  </span>
+
+                  {/* Calendar icon */}
+                  <Calendar/>
+
+                  {/* Actual input (tiny & hidden visually) */}
+                  <input
+                    id="dateInput"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className=" absolute left-0 bottom-0 w-1 h-1 opacity-0"
+                  />
+                </div>
               </label>
+
             </div>
 
             {/* Category */}
@@ -154,22 +177,25 @@ const Transations = () => {
               <p className="text-white text-base font-medium mb-2">Category</p>
               <div className="relative">
                 <select
-                title="Select Category"
+                  title="Select Category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   onClick={() => setIsOpen(!isOpen)}
-                  className="form-select w-full rounded-lg border border-[#326748] bg-[#193324] p-4 text-white 
+                  className=" appearance-none form-select w-full rounded-lg border border-[#326748] bg-[#193324] p-4 text-white 
                   cursor-pointer focus:border-[#13ec6d] focus:ring-[#13ec6d]"
                 >
                   <option value="">Select a category</option>
-                  <option value="food">Food & Drink</option>
-                  <option value="transport">Transport</option>
-                  <option value="bills">Bills & Utilities</option>
-                  <option value="entertainment">Entertainment</option>
-                  <option value="other">Other</option>
+                  {(transactionType === "income" ? incomeCategories : expenseCategories) &&
+                    Object.entries(transactionType === "income" ? incomeCategories : expenseCategories).map(
+                      ([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
+                      )
+                    )}
                 </select>
 
-                <div className="absolute top-4 right-4 transition-all">
+                <div className="text-white absolute top-4 right-4 transition-all">
                   {isOpen ? <ChevronUp /> : <ChevronDown />}
                 </div>
               </div>

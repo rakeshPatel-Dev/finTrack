@@ -1,69 +1,61 @@
-# React + TypeScript + Vite
+# FinTrack
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**FinTrack** is a modern expense and income tracker built with **React**, **TypeScript**, and **Vite**. It allows users to manage their finances efficiently with features like adding transactions, filtering by type/category/date, editing, deleting, and viewing summaries like highest spent categories and remaining budget.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- Add **income** and **expense** transactions with title, amount, category, and date.
+- **Edit** and **delete** existing transactions with confirmation modals.
+- **Filter transactions** by:
+  - Type: Income / Expense / All
+  - Category: Dynamic categories based on selected type
+  - Search text
+  - Date range (with presets: Today, Yesterday, Last 7 days, Last 30 days)
+- **Sort transactions** by date or amount.
+- **Summary cards**:
+  - Highest spent category with amount
+  - Total income and total expenses
+  - Remaining budget with percentage calculation
+- Persist transactions in **localStorage** for offline use.
+- Fully **responsive** UI using **TailwindCSS**.
+- Modern **UX/UI** with modals, dynamic dropdowns, and interactive filters.
+- Notifications using **react-hot-toast**.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- **Frontend**:
+  - React 18+
+  - TypeScript
+  - Vite
+  - TailwindCSS
+  - Lucide Icons
+  - React Hot Toast
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Key Components**:
+  - `ConfirmModal` – delete confirmation modal
+  - `EditTransactionModal` – inline edit modal for transactions
+  - `DateRangeModal` – custom date range selector with preset ranges
+  - `SummaryCard` – displays analytics (highest spent category, budget remaining, etc.)
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- **Data**:
+  - Transactions are stored in `localStorage` under `fintrack-transactions`.
+  - Categories are divided into `incomeCategories` and `expenseCategories`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/rakeshPatel-dev/fintrack.git
+cd fintrack
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
