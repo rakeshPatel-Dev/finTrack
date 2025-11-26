@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { resolve } from 'path'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: "./",
@@ -11,6 +10,5 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "./src"),
     },
-  },
-  },
-)
+  }
+})
